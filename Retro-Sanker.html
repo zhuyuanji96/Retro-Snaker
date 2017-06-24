@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>贪吃蛇</title>
+	<style type="text/css">
+		button{ margin-right: 10px;}
+		span{ margin-right: 20px; font-weight: bold; color: green;}
+	</style>
+	<script type="text/javascript">
+	//定义一个创建canvas画布的函数,用来制作游戏界面
+	var createCanvas=function(rows,cols,cellWidth,cellHeight){
+		mc=document.createElement("canvas");
+		mc.width=cols*cellWidth;
+		mc.height=rows*cellHeight;
+		mc.style.border="1px solid black";
+		mc.style.autofocus="autofocus";
+		ctx=mc.getContext("2d");
+		ctx.beginPath();
+		for(var i=1;i<rows;i++){
+			ctx.moveTo(0,i*cellHeight);
+			ctx.lineTo(cellWidth*cols,i*cellHeight);
+		}
+		for(var i=1;i<cols;i++){
+			ctx.moveTo(i*cellWidth,0);
+			ctx.lineTo(i*cellWidth,cellHeight*rows);
+		}
+		ctx.closePath();
+		ctx.strokeStyle="#aaa";
+		ctx.lineWidth=0.1;
+		ctx.stroke();
+	}
+	//遍历每个单元格,并为其赋初始值
+	var ctx_cells=[];
+	for(var i=0;i<30;i++){
+		ctx_cells[i]=[];
+		for(var j=0;j<60;j++){
+			ctx_cells[i][j]="noting";
+		}
+	}
+	//生成一条一开始的蛇模型
+	var intsnake=
+	[	
+		{x:32,y:15,color:"red"},
+		{x:31,y:15,color:"green"},
+		{x:30,y:15,color:"green"},
+		{x:29,y:15,color:"green"},
+		{x:28,y:15,color:"green"}
+	]
+	//绘制游戏画面
+	var drawsnake=function(){
+		for(var i=0;i<intsnake.length;i++){
+			ctx.fillStyle=intsnake[i].color;
+			ctx.fillRect(intsnake[i].x*15+1,intsnake[i].y*15+1,13,13);
+		}
+	}
+	var clearsnake=function(){
+		for(var i=0;i<intsnake.length;i++){
+			ctx.fillStyle="white";
+			ctx.fillRect(intsnake[i].x*15+1,intsnake[i].y*15+1,13,13);
+		}
+	}
+	//随机生成食物点
+	var x,y;
+	var createfood=function(){
+		x=Math.floor(Math.random()*60);
+		y=Math.floor(Math.random()*30);
+		ctx.fillStyle="orange";
+		ctx.fillRect(x*15+1,y*15+1,13,13);
+	}
+	//判断游戏是否结束
+	var check=function(){
+		len=intsnake.length-1;
+		if(intsnake[0].x==-1||intsnake[0].x==60){
+			if(score>max){
+				localStorage.setItem("max",score);
+				localStorage.removeItem("speed");
+				alert("恭喜您,创造了新的游戏记录!");
+			}
+			else{
+				localStorage.removeItem("speed");
+				alert("游戏结束!");
+			}
+			localStorage.setItem("score",0);
+			clearInterval(adTimer);
+		}
+		if(intsnake[0].y==-1||intsnake[0].y==30){
+			if(score>max){
+				localStorage.setItem("max",score);
+				localStorage.removeItem("speed");
+				alert("恭喜您,创造了新的游戏记录!");
+			}
+			else{
+				localStorage.removeItem("speed");
+				alert("游戏结束!");
+			}
+			localStorage.setItem("score",0);
+			clearInterval(adTimer);
+		}
+		for(var i=1;i<intsnake.length;i++){
+			if(intsnake[0].x==intsnake[i].x&&intsnake[0].y==intsnake[i].y){
+				if(score>max){
+					localStorage.setItem("max",score);
+					localStorage.removeItem("speed");
+					alert("恭喜您,创造了新的游戏记录!");
+				}
+				else{
+					localStorage.removeItem("speed");
+					alert("游戏结束!");
+				}
+				localStorage.setItem("score",0);
+				clearInterval(adTimer);
+			}
+		}
+	}
+	//控制模型改变方向
+	var go="right";
+	var a,b;
+	var goright=function(){
+		go="right";
+			clearsnake();
+			for(var i=intsnake.length-1;i>-1;i--){
+				if(i!=0){
+					intsnake[i].y=intsnake[i-1].y;
+					intsnake[i].x=intsnake[i-1].x;
+				}
+				else{
+					intsnake[i].x=intsnake[i].x+1;
+				}
+			}
+			drawsnake();
+			check();
+			if(x==intsnake[0].x&&y==intsnake[0].y){
+				createfood();
+				scoreEle.innerHTML=score+=5;
+				localStorage.setItem("score",score);
+					if(score>Math.pow(speed,2)*50){
+						speedEle.innerHTML=speed+=1;
+						localStorage.setItem("speed",speed);
+					}
+				a=intsnake[0].x;
+				b=intsnake[0].y;
+				intsnake.push({x:a,y:b,color:"green"});
+			}
+	}
+	var goleft=function(){
+		go="left";
+		clearsnake();
+			for(var i=intsnake.length-1;i>-1;i--){
+				if(i!=0){
+					intsnake[i].y=intsnake[i-1].y;
+					intsnake[i].x=intsnake[i-1].x;
+				}
+				else{
+					intsnake[i].x=intsnake[i].x-1;
+				}
+			}
+			drawsnake();
+			check();
+			if(x==intsnake[0].x&&y==intsnake[0].y){
+				createfood();
+				scoreEle.innerHTML=score+=5;
+				localStorage.setItem("score",score);
+				if(score>Math.pow(speed,2)*50){
+						speedEle.innerHTML=speed+=1;
+						localStorage.setItem("speed",speed);
+					}
+				a=intsnake[0].x;
+				b=intsnake[0].y;
+				intsnake.push({x:a,y:b,color:"green"});
+			}
+	}
+	var gotop=function(){
+		go="top";
+		clearsnake();
+		for(var i=intsnake.length-1;i>-1;i--){
+				if(i!=0){
+					intsnake[i].y=intsnake[i-1].y;
+					intsnake[i].x=intsnake[i-1].x;
+				}
+				else{
+					intsnake[i].y=intsnake[i].y-1;
+				}
+			}
+			drawsnake();
+			check();
+			if(x==intsnake[0].x&&y==intsnake[0].y){
+				createfood();
+				scoreEle.innerHTML=score+=5;
+				localStorage.setItem("score",score);
+				if(score>Math.pow(speed,2)*50){
+						speedEle.innerHTML=speed+=1;
+						localStorage.setItem("speed",speed);
+					}
+				a=intsnake[0].x;
+				b=intsnake[0].y;
+				intsnake.push({x:a,y:b,color:"green"});
+			}
+	}
+	var godowm=function(){
+			go="dowm";
+			clearsnake();
+			for(var i=intsnake.length-1;i>-1;i--){
+				if(i!=0){
+					intsnake[i].y=intsnake[i-1].y;
+					intsnake[i].x=intsnake[i-1].x;
+				}
+				else{
+					intsnake[i].y=intsnake[i].y+1;
+				}
+			}
+			drawsnake();
+			check();
+			if(x==intsnake[0].x&&y==intsnake[0].y){
+				createfood();
+				scoreEle.innerHTML=score+=5;
+				localStorage.setItem("score",score);
+				if(score>Math.pow(speed,2)*50){
+						speedEle.innerHTML=speed+=1;
+						localStorage.setItem("speed",speed);
+					}
+				a=intsnake[0].x;
+				b=intsnake[0].y;
+				intsnake.push({x:a,y:b,color:"green"});
+			}
+		}
+	window.onkeydown=function(evt){
+		switch(evt.keyCode){
+			case 37:
+				if(go!="right"){
+					clearInterval(adTimer);
+					adTimer=setInterval("goleft();",500/speed);
+				}
+				return false;
+			case 38:
+				if(go!="dowm"){
+					clearInterval(adTimer);
+					adTimer=setInterval("gotop();",500/speed);
+				}
+				return false;
+			case 39:
+				if(go!="left"){
+					clearInterval(adTimer);
+					adTimer=setInterval("goright();",500/speed);
+				}
+				return false;
+			case 40:
+				if(go!="top"){
+					clearInterval(adTimer);
+					adTimer=setInterval("godowm();",500/speed);
+				}
+				return false;	
+		}
+	}
+
+	window.onload=function(){
+		createCanvas(30,60,15,15);
+		document.body.appendChild(mc);
+		scoreEle=document.getElementById("score");
+		speedEle=document.getElementById("speed");
+	 	maxEle=document.getElementById("max");
+		score=localStorage.getItem("score");
+		score=score==null?0:parseInt(score);
+		scoreEle.innerHTML=score;
+		speed=localStorage.getItem("speed");
+		speed=speed==null?1:parseInt(speed);
+		speedEle.innerHTML=speed;
+		max=localStorage.getItem("max");
+		max=max==null?0:parseInt(max);
+		maxEle.innerHTML=max;
+		adTimer=setInterval("goright();",500/speed);
+		createfood();
+	}
+	</script>
+</head>
+<body>
+	<div>
+		<button id="reset">重新开始</button>
+		<button id="pause">暂停</button>
+		<button id="begin">继续</button>
+		当前分数:<span id="score"></span>速度:<span id="speed"></span>最高分数:<span id="max"></span>	
+	</div>
+
+</body>
+</html>
